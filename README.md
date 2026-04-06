@@ -1,207 +1,196 @@
-# 🚀 Knowledge Nexus Clone - AI-Powered Note Taking System (MVP)
+# 🚀 Obsidian Clone TURBO - MVP Ultra-Leve
 
-Um sistema de gerenciamento de conhecimento **local-first** inspirado no [Knowledge Nexus](https://github.com/Jallermax/knowledge-nexus) e no Obsidian, com integração nativa de IA baseada em **Modelos Locais Leves (Xenova Transformers)** e **Gemini CLI**, permitindo que o sistema execute ações autônomas para análise, geração de conteúdo e automação de fluxo de trabalho, **100% privado e offline**.
+**Sistema de anotações com grafo de conhecimento para PCs fracos**
 
-## 🎯 Conceitos do Knowledge Nexus Integrados
-
-Este MVP faz engenharia reversa dos principais conceitos do Knowledge Nexus:
-
-| Knowledge Nexus (Python) | Nosso MVP (TypeScript/Node) | Status |
-|--------------------------|----------------------------|--------|
-| Neo4j Graph DB | **SQLite + TypeORM Relations** | ✅ |
-| OpenAI API | **Xenova Transformers (Local)** | ✅ |
-| Streamlit UI | **REST API + Futuro React** | 🚧 |
-| LangChain | **Orquestrador Próprio** | ✅ |
-| Notion Provider | **FileSystem + Notion (Futuro)** | ✅/🚧 |
-| FS Cache | **EmbeddingCache Entity** | ✅ |
-| spaCy NER | **Xenova NER (Futuro)** | 🚧 |
-| Python | **Node.js/TypeScript** | ✅ |
-
-## ✨ Diferenciais vs Knowledge Nexus Original
-
-| Feature | Knowledge Nexus | Nosso MVP |
-|---------|----------------|-----------|
-| Runtime | Python | **Node.js/TS** |
-| IA | OpenAI only | **Local-first + Cloud fallback** |
-| Graph DB | Neo4j required | **SQLite OR Neo4j** |
-| Offline | ❌ Requires API | **✅ 100% offline capable** |
-| Privacy | Sends to OpenAI | **Zero data out (local mode)** |
-| Speed | ~1-2s/op | **~50-100ms/op (local)** |
-| UI | Streamlit | **REST API + React (futuro)** |
-| Real-time | ❌ | **✅ Socket.io ready** |
-| Setup | Complex | **npm install + run** |
-
-## 📦 MVP Scope - Funcionalidades Implementadas
-
-### ✅ Fase 1: Core Infrastructure
-
-#### Modelos de Dados
-- **Note**: Notas com suporte a múltiplas fontes (FS, Notion, Web)
-- **ConceptEntity**: Entidades/conceitos extraídos (Topic, Person, Organization, etc.)
-- **Relation**: Relações entre entidades (MENTIONS, RELATED_TO, SIMILAR_TO, etc.)
-- **Tag**: Tags estilo Obsidian
-- **EmbeddingCache**: Cache de vetores para busca semântica offline
-
-#### Serviços
-- **FileSystemProvider**: Ingestão de markdown com parse de frontmatter, tags e links
-- **EmbeddingService**: Geração de embeddings locais com Xenova (384 dims, quantizado)
-- **GraphEngine**: Construção e consulta do grafo de conhecimento
-
-### 🚧 Fase 2: Em Desenvolvimento
-- Entity Extraction (NER automático)
-- Auto-Linker (sugestão de links entre notas)
-- API Routes completas
-- Frontend React
-
-### 🔮 Fase 3: Futuro
-- Notion Provider
-- Web Scraper
-- RAG Mechanism
-- Chat Interface Q&A
-
-## 🏗️ Arquitetura
-
-```
-┌─────────────────────────────────────────────────────┐
-│                 UI Frontend                          │
-│            (React/Vue + Monaco Editor)               │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│            API Layer (REST/GraphQL)                 │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│     Core Engine                                      │
-│  ┌──────────────┐  ┌──────────────┐                 │
-│  │ Note System  │  │ Graph Engine │                 │
-│  └──────────────┘  └──────────────┘                 │
-│  ┌──────────────┐  ┌──────────────┐                 │
-│  │ Ingestion    │  │ AI Engine    │                 │
-│  │ (FileSystem) │  │ (Xenova)     │                 │
-│  └──────────────┘  └──────────────┘                 │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│       Storage Layer                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │  SQLite  │  │  File    │  │ Embedding│           │
-│  │(TypeORM) │  │  Store   │  │  Cache   │           │
-│  └──────────┘  └──────────┘  └──────────┘           │
-└─────────────────────────────────────────────────────┘
-```
-
-## 🚀 Quick Start
-
-### Pré-requisitos
-- Node.js >= 18.0.0
-- npm >= 8.0.0
-
-### Instalação
-
-```bash
-# Clone o repositório
-git clone <repository>
-cd obsidian-clone-
-
-# Instale as dependências
-npm install
-
-# Configure variáveis de ambiente (opcional para modo local)
-cp .env.example .env
-
-# Inicie o servidor de desenvolvimento
-npm run dev
-
-# Acesse em http://localhost:3000
-```
-
-### Primeiro Uso - Ingestão de Notas
-
-```typescript
-import { FileSystemProvider } from './src/services/ingestion/FileSystemProvider'
-import { embeddingService } from './src/services/ai/EmbeddingService'
-import { graphEngine } from './src/services/graph/GraphEngine'
-
-// 1. Escaneia diretório
-const provider = new FileSystemProvider()
-const files = await provider.scanDirectory('./my-notes')
-
-// 2. Processa cada arquivo
-for (const file of files) {
-  const parsed = await provider.parseMarkdown(file.filePath)
-  console.log(`Parsed: ${parsed.title}`)
-}
-
-// 3. Gera embeddings (primeira vez baixa o modelo ~80MB)
-const embedding = await embeddingService.generateEmbedding(
-  "Conteúdo da nota",
-  EmbeddingType.NOTE_CONTENT,
-  'note-id'
-)
-
-// 4. Visualiza grafo
-const graph = await graphEngine.buildGraph()
-console.log(`Graph: ${graph.nodes.length} nodes, ${graph.edges.length} edges`)
-```
-
-## 📚 Documentação
-
-| Documento | Propósito |
-|-----------|-----------|
-| [**MVP_PLAN.md**](./MVP_PLAN.md) | 📋 Plano completo do MVP |
-| [**MVP_IMPLEMENTATION.md**](./docs/MVP_IMPLEMENTATION.md) | 🔧 Guia de implementação |
-| [**QUICK_LOCAL_SETUP.md**](./docs/QUICK_LOCAL_SETUP.md) | ⚡ Setup em 5 minutos |
-| [**LOCAL_MODELS.md**](./docs/LOCAL_MODELS.md) | 🤖 Modelos leves & arquitetura local-first |
-| [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md) | 🏗️ Arquitetura detalhada |
-| [**AI_ENGINE.md**](./docs/AI_ENGINE.md) | ⚙️ Motor de IA e orquestração |
-| [**API.md**](./docs/API.md) | 📖 Referência da API |
-
-## 🛠️ Stack Tecnológico
-
-- **Runtime**: Node.js 18+
-- **Language**: TypeScript 5
-- **Database**: SQLite (via TypeORM)
-- **AI/Xenova**: @xenova/transformers (all-MiniLM-L6-v2)
-- **Vector**: Embedding cache no SQLite
-- **Server**: Express + Socket.io
-- **Models**: TypeORM entities
-
-## 📊 Métricas de Performance
-
-| Operação | Tempo Alvo | Modo |
-|----------|------------|------|
-| Scan 100 files | < 5s | Local |
-| Parse markdown | < 10ms | Local |
-| Generate embedding | 50-100ms | Local (cached: <10ms) |
-| Build graph (1000 nodes) | < 2s | Local |
-| Semantic search | < 200ms | Local |
-
-## 🔒 Privacidade e Offline
-
-- ✅ Zero dados enviados para cloud (modo local)
-- ✅ Embeddings gerados localmente
-- ✅ Banco de dados SQLite local
-- ✅ Funciona sem internet após setup inicial
-- ✅ Download único do modelo (~80MB quantizado)
-
-## 🤝 Contribuindo
-
-Veja [DEVELOPMENT.md](./docs/DEVELOPMENT.md) para instruções de desenvolvimento.
-
-## 📄 Licença
-
-MIT
-
-## 🙏 Agradecimentos
-
-Inspirado por:
-- [Knowledge Nexus](https://github.com/Jallermax/knowledge-nexus) - GraphRAG para Second Brain
-- [Obsidian.md](https://obsidian.md) - Note taking baseado em markdown
-- [Xenova Transformers](https://github.com/xenova/transformers.js) - ML no navegador/Node
+> ⚡ **Rodando em PCs "carroça"** (2GB RAM, CPU dual-core, sem GPU)  
+> 🤖 **IA Híbrida**: Local (regex) + Cloud (Gemini CLI grátis)  
+> 📦 **Zero Bloat**: 9 dependências vs 50+ do plano original
 
 ---
 
-**Status**: 🚧 MVP em Desenvolvimento (Fase 1 Completa)  
-**Versão**: 0.2.0-mvp  
-**Última Atualização**: 2025-04-05
+## 🎯 Funcionalidades
+
+- ✅ **Ingestão de Markdown** - Lê arquivos `.md` com tags `#` e links `[[ ]]`
+- ✅ **Extração de Entidades** - Regex local (rápido) + Gemini CLI (preciso)
+- ✅ **Auto-Linking** - Sugere conexões entre notas baseado em similaridade
+- ✅ **Grafo de Conhecimento** - Visualize relações entre notas
+- ✅ **Busca Full-Text** - Busca em títulos, conteúdo, tags e entidades
+- ✅ **100% Offline** - Funciona sem internet (exceto Gemini CLI opcional)
+
+---
+
+## 🚀 Quick Start (3 Comandos)
+
+```bash
+# 1. Instalar dependências (leve!)
+npm install
+
+# 2. Copiar env
+cp .env.example .env
+
+# 3. Rodar em dev
+npm run dev
+```
+
+Acesse: **http://localhost:3000**
+
+---
+
+## 📖 API Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/ingest` | Ingere notas de um diretório |
+| `GET` | `/api/ingest/status` | Status da ingestão |
+| `GET` | `/api/graph` | Retorna grafo completo |
+| `GET` | `/api/graph/stats` | Estatísticas do grafo |
+| `GET` | `/api/search?q=...` | Busca notas |
+| `GET` | `/api/search/similar/:id` | Notas similares |
+
+### Exemplo: Ingerir Notas
+
+```bash
+curl -X POST http://localhost:3000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "./minhas-notas"}'
+```
+
+### Exemplo: Buscar Notas
+
+```bash
+curl "http://localhost:3000/api/search?q=inteligência%20artificial"
+```
+
+---
+
+## 🏗️ Arquitetura Turbo
+
+```
+┌─────────────────────────────────────┐
+│         Frontend (futuro)           │
+│      Preact + Sigma.js (<50KB)      │
+└──────────────┬──────────────────────┘
+               │ REST API
+┌──────────────▼──────────────────────┐
+│       Express Server (10MB)         │
+│  /ingest  /graph  /search  /query   │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│       Core Services                 │
+│  ┌──────────┐  ┌─────────────────┐  │
+│  │ Entity   │  │ AutoLinker      │  │
+│  │Extractor │  │ (Similaridade)  │  │
+│  │(Regex+AI)│  │ 100% local      │  │
+│  └──────────┘  └─────────────────┘  │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│    Better-SQLite3 (2MB, WAL mode)   │
+│   Tables: notes, tags, entities,    │
+│           relations, embeddings     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 📊 Performance (Meta PC Carroça)
+
+| Métrica | Meta | Como? |
+|---------|------|-------|
+| RAM Idle | <30MB | Better-SQLite3 + lazy load |
+| Startup | <1s | Zero ORM, SQL direto |
+| Ingestão (1k notas) | <2s | Parallel processing |
+| Busca | <50ms | Índices + cache |
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Componente | Tecnologia | Por que? |
+|------------|-----------|----------|
+| Runtime | Node.js 18+ | DX bom, já temos |
+| Database | Better-SQLite3 | 10x mais rápido que TypeORM |
+| IA Local | Regex nativo | ~1ms, zero dependências |
+| IA Cloud | Gemini CLI | Grátis, offload pesado |
+| API | Express | Minimalista, funcional |
+
+**Total deps:** 5 produção + 4 dev = **9 packages**
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+/workspace/
+├── src/
+│   ├── core/
+│   │   └── database.ts        # Better-SQLite3 puro
+│   ├── api/routes/
+│   │   ├── ingest.ts          # POST /ingest
+│   │   ├── graph.ts           # GET /graph
+│   │   └── search.ts          # GET /search
+│   ├── services/
+│   │   ├── ai/
+│   │   │   ├── EntityExtractor.ts  # Regex + Gemini
+│   │   │   └── AutoLinker.ts       # Similaridade
+│   │   └── ingestion/
+│   │       └── FileSystemProvider.ts
+│   └── server-turbo.ts        # Entry point
+├── scripts/
+├── package.json
+└── README.md
+```
+
+---
+
+## 🧪 Testando
+
+```bash
+# 1. Crie algumas notas markdown
+mkdir -p ./notas-teste
+
+cat > ./notas-teste/nota1.md << 'MARKDOWN'
+# Introdução à IA
+
+Inteligência Artificial é o futuro. [[Machine Learning]] é parte disso.
+#tecnologia #ia
+MARKDOWN
+
+cat > ./notas-teste/nota2.md << 'MARKDOWN'
+# Machine Learning
+
+Machine Learning usa dados para treinar modelos.
+Relacionado com [[Introdução à IA]] e #data-science.
+MARKDOWN
+
+# 2. Injera as notas
+curl -X POST http://localhost:3000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "./notas-teste"}'
+
+# 3. Veja o grafo
+curl http://localhost:3000/api/graph
+
+# 4. Busque
+curl "http://localhost:3000/api/search?q=ia"
+```
+
+---
+
+## 📝 Próximos Passos
+
+- [ ] Frontend Preact + Sigma.js
+- [ ] WebSocket para updates em tempo real
+- [ ] Embeddings locais com Xenova (opcional)
+- [ ] Export/import de backup
+
+---
+
+## 📄 Licença
+
+MIT - Faça o que quiser! 🚀
+
+---
+
+**Feito com ❤️ para PCs carroças do mundo todo!**

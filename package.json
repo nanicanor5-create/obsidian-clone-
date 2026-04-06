@@ -1,66 +1,46 @@
 {
-  "name": "obsidian-clone",
-  "version": "0.1.0-alpha",
-  "description": "AI-powered note taking system with autonomous Gemini CLI integration",
-  "main": "dist/index.js",
+  "name": "obsidian-clone-turbo",
+  "version": "0.2.0-turbo",
+  "description": "AI-powered note taking system - TURBO MVP (ultra-lightweight for low-end PCs)",
+  "main": "dist/server-turbo.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:api\" \"npm run dev:ai\"",
-    "dev:api": "tsx watch src/server.ts",
-    "dev:ai": "tsx watch src/ai/orchestrator.ts",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "tsc && npm run build:frontend",
-    "build:frontend": "cd frontend && npm run build",
-    "start": "node dist/server.js",
-    "start:ai": "node dist/ai/orchestrator.js",
-    "test": "jest --coverage",
-    "test:watch": "jest --watch",
-    "test:unit": "jest --testPathPattern=unit",
-    "test:integration": "jest --testPathPattern=integration",
-    "test:e2e": "jest --testPathPattern=e2e",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.ts\" \"frontend/src/**/*.{ts,tsx}\"",
-    "type-check": "tsc --noEmit",
-    "migrate:up": "ts-node scripts/migrate.ts up",
-    "migrate:down": "ts-node scripts/migrate.ts down",
-    "migrate:create": "ts-node scripts/migrate.ts create",
-    "seed:dev": "ts-node scripts/seed.ts",
-    "db:reset": "npm run migrate:down && npm run migrate:up && npm run seed:dev",
-    "prepare": "husky install"
+    "dev": "tsx watch src/server-turbo.ts",
+    "build": "tsc",
+    "start": "node dist/server-turbo.js",
+    "db:init": "tsx scripts/init-db.ts",
+    "db:reset": "rm -f knowledge.db && npm run db:init",
+    "test": "echo 'Tests coming soon'",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "obsidian",
     "notes",
     "knowledge-graph",
     "ai",
-    "gemini",
-    "llm",
-    "autonomous"
+    "lightweight",
+    "sqlite",
+    "local-first"
   ],
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^9.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.0",
     "express": "^4.18.0",
-    "uuid": "^9.0.0",
-    "zod": "^3.22.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
     "@types/cors": "^2.8.0",
     "@types/express": "^4.17.0",
     "@types/node": "^20.0.0",
     "@types/uuid": "^9.0.0",
-    "concurrently": "^8.2.0",
     "tsx": "^4.0.0",
     "typescript": "^5.2.0"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seu-usuario/obsidian-clone-.git"
   }
 }
