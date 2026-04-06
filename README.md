@@ -1,170 +1,196 @@
-# Obsidian Clone - AI-Powered Note Taking System
+# 🚀 Obsidian Clone TURBO - MVP Ultra-Leve
 
-Um clone do Obsidian com integração nativa de IA baseada em **Gemini CLI e Modelos Locais Leves**, permitindo que o sistema execute ações autônomas usando múltiplos modelos de IA para análise, geração de conteúdo e automação de fluxo de trabalho, **100% privado e offline-first**.
+**Sistema de anotações com grafo de conhecimento para PCs fracos**
 
-## 🚀 Visão Geral
-
-Este projeto implementa um sistema de anotações similiar ao Obsidian, mas com:
-
-- **Motor de IA Integrado**: Gemini CLI + Modelos Locais (Xenova Transformers)
-- **Prioridade Local-First**: Usa modelos locais leves por padrão (50-100ms por operação)
-- **Offline por Design**: Funciona completamente sem internet
-- **Privacidade Total**: Dados nunca saem do seu computador
-- **Autossuficiência de IA**: O sistema pode executar ações por conta própria (análise de notas, sugestões de ligações, geração de estruturas)
-- **Múltiplos Backends de IA**: Fallback para Gemini, Claude, OpenAI quando necessário
-- **Grafo de Conhecimento**: Sistema de linking bidirecional entre notas
-- **Sincronização em Tempo Real**: Atualização instantânea de relacionamentos entre notas
-
-## ✨ Características Principais
-
-### Core
-- 📝 Edição de markdown com preview em tempo real
-- 🔗 Grafo de conhecimento com backlinks
-- 🏷️ Tags e categorização automática via IA
-- 🔍 Busca inteligente alimentada por IA
-- 📊 Wall of insights (painel de sugestões da IA)
-
-### IA & Automação (LOCAL-FIRST)
-- 🤖 **Auto-Analyzer**: Extrai conceitos e entidades usando Xenova embeddings
-- 💡 **Auto-Linker**: Descobre automaticamente conexões entre notas (100% offline)
-- 📈 **Smart Summarizer**: Cria sumários automáticos
-- 🎯 **Auto-Tagger**: Classificação automática de notas
-- 🔄 **Background Tasks**: Processamento assíncrono de notas
-- 🌐 **Confidence Fallback**: Usa APIs cloud só quando necessário
-
-### Recursos Avançados
-- 🌐 Suporte a múltiplas linguagens (via multilingual-e5)
-- 📱 Interface responsiva (funciona em qualquer tela)
-- 🎨 Tema claro/escuro com customização
-- 💾 Export (PDF, HTML, Markdown) offline
-- 🔐 Encriptação local (opcional)
-- ⚡ Execução 90% mais rápida que APIs cloud
-
-## 🏗️ Arquitetura
-
-```
-┌─────────────────────────────────────────────────────┐
-│                 UI Frontend                          │
-│            (React/Vue + Monaco Editor)               │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│            API Layer (REST/GraphQL)                 │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│     Core Engine                                      │
-│  ┌──────────────┐  ┌──────────────┐                 │
-│  │ Note System  │  │ Graph Engine │                 │
-│  └──────────────┘  └──────────────┘                 │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│          AI Engine (Gemini CLI)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │ Analyzer │  │ Generator│  │Orchestrator          │
-│  └──────────┘  └──────────┘  └──────────┘           │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│       Storage Layer                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │  Database│  │  File    │  │  Vector  │           │
-│  │  (SQL)   │  │  Store   │  │  DB      │           │
-│  └──────────┘  └──────────┘  └──────────┘           │
-└─────────────────────────────────────────────────────┘
-```
-
-## 🚀 Quick Start
-
-```bash
-# Clone o repositório
-git clone <repository>
-cd obsidian-clone-
-
-# Instale as dependências
-npm install
-
-# Configure as chaves de API
-cp .env.example .env
-# Edite .env com suas chaves Gemini, Claude, etc.
-
-# Inicie o servidor de desenvolvimento
-npm run dev
-
-# Acesse em http://localhost:3000
-```
-
-## 📚 Documentação
-
-- [**QUICK_LOCAL_SETUP.md**](./docs/QUICK_LOCAL_SETUP.md) - ⚡ Setup em 5 minutos (COMECE AQUI!)
-- [**LOCAL_MODELS.md**](./docs/LOCAL_MODELS.md) - 🤖 Modelos leves & arquitetura local-first
-- [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md) - 🏗️ Arquitetura detalhada
-- [**AI_ENGINE.md**](./docs/AI_ENGINE.md) - ⚙️ Motor de IA e orquestração
-- [**GETTING_STARTED.md**](./docs/GETTING_STARTED.md) - 🚀 Guia completo de setup
-- [**API.md**](./docs/API.md) - 📖 Referência da API
-- [**DEVELOPMENT.md**](./docs/DEVELOPMENT.md) - 👨‍💻 Guia de contribuição
-
-## 🤖 Como Funciona o Motor de IA
-
-O sistema usa **Gemini CLI** como orquestrador central:
-
-1. **Observação**: Sistema monitora novas/alteradas notas
-2. **Análise**: Gemini CLI analisa o conteúdo automaticamente
-3. **Decision Making**: IA decide que ações tomar
-4. **Execução**: Sistema executa ações (criar links, tags, sumários)
-5. **Feedback**: Resultados são validados e refinados
-
-Similar ao Paperclip AI, que usava GPT para suas próprias ações, nosso sistema é **auto-dirigizado pela IA**.
-
-## 📦 Stack Tecnológico
-
-- **Backend**: Node.js + Express
-- **Frontend**: React 18 + TailwindCSS
-- **Database**: PostgreSQL
-- **Vector DB**: Pinecone/Weaviate
-- **IA Engines**: Gemini CLI, Claude API, OpenAI API
-- **Real-time**: Socket.io
-- **Task Queue**: Bull/RabbitMQ
-
-## 🔧 Configuração
-
-Copie `.env.example` para `.env` e configure:
-
-```env
-# Gemini
-GEMINI_API_KEY=your_key
-GEMINI_MODEL=gemini-pro
-
-# Claude (Fallback)
-CLAUDE_API_KEY=your_key
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost/obsidian
-
-# Vector Database
-PINECONE_API_KEY=your_key
-PINECONE_ENVIRONMENT=us-west1
-
-# Server
-PORT=3000
-NODE_ENV=development
-```
-
-## 🤝 Contribuindo
-
-Veja [DEVELOPMENT.md](./docs/DEVELOPMENT.md) para instruções de desenvolvimento.
-
-## 📄 Licença
-
-MIT
-
-## 🙏 Agradecimentos
-
-Inspirado pelo Obsidian.md e pela abordagem autônoma de IA do Paperclip AI.
+> ⚡ **Rodando em PCs "carroça"** (2GB RAM, CPU dual-core, sem GPU)  
+> 🤖 **IA Híbrida**: Local (regex) + Cloud (Gemini CLI grátis)  
+> 📦 **Zero Bloat**: 9 dependências vs 50+ do plano original
 
 ---
 
-**Status**: 🚧 Em Desenvolvimento
-**Versão**: 0.1.0-alpha
-**Última Atualização**: 2025-04-05
+## 🎯 Funcionalidades
+
+- ✅ **Ingestão de Markdown** - Lê arquivos `.md` com tags `#` e links `[[ ]]`
+- ✅ **Extração de Entidades** - Regex local (rápido) + Gemini CLI (preciso)
+- ✅ **Auto-Linking** - Sugere conexões entre notas baseado em similaridade
+- ✅ **Grafo de Conhecimento** - Visualize relações entre notas
+- ✅ **Busca Full-Text** - Busca em títulos, conteúdo, tags e entidades
+- ✅ **100% Offline** - Funciona sem internet (exceto Gemini CLI opcional)
+
+---
+
+## 🚀 Quick Start (3 Comandos)
+
+```bash
+# 1. Instalar dependências (leve!)
+npm install
+
+# 2. Copiar env
+cp .env.example .env
+
+# 3. Rodar em dev
+npm run dev
+```
+
+Acesse: **http://localhost:3000**
+
+---
+
+## 📖 API Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/ingest` | Ingere notas de um diretório |
+| `GET` | `/api/ingest/status` | Status da ingestão |
+| `GET` | `/api/graph` | Retorna grafo completo |
+| `GET` | `/api/graph/stats` | Estatísticas do grafo |
+| `GET` | `/api/search?q=...` | Busca notas |
+| `GET` | `/api/search/similar/:id` | Notas similares |
+
+### Exemplo: Ingerir Notas
+
+```bash
+curl -X POST http://localhost:3000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "./minhas-notas"}'
+```
+
+### Exemplo: Buscar Notas
+
+```bash
+curl "http://localhost:3000/api/search?q=inteligência%20artificial"
+```
+
+---
+
+## 🏗️ Arquitetura Turbo
+
+```
+┌─────────────────────────────────────┐
+│         Frontend (futuro)           │
+│      Preact + Sigma.js (<50KB)      │
+└──────────────┬──────────────────────┘
+               │ REST API
+┌──────────────▼──────────────────────┐
+│       Express Server (10MB)         │
+│  /ingest  /graph  /search  /query   │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│       Core Services                 │
+│  ┌──────────┐  ┌─────────────────┐  │
+│  │ Entity   │  │ AutoLinker      │  │
+│  │Extractor │  │ (Similaridade)  │  │
+│  │(Regex+AI)│  │ 100% local      │  │
+│  └──────────┘  └─────────────────┘  │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│    Better-SQLite3 (2MB, WAL mode)   │
+│   Tables: notes, tags, entities,    │
+│           relations, embeddings     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 📊 Performance (Meta PC Carroça)
+
+| Métrica | Meta | Como? |
+|---------|------|-------|
+| RAM Idle | <30MB | Better-SQLite3 + lazy load |
+| Startup | <1s | Zero ORM, SQL direto |
+| Ingestão (1k notas) | <2s | Parallel processing |
+| Busca | <50ms | Índices + cache |
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Componente | Tecnologia | Por que? |
+|------------|-----------|----------|
+| Runtime | Node.js 18+ | DX bom, já temos |
+| Database | Better-SQLite3 | 10x mais rápido que TypeORM |
+| IA Local | Regex nativo | ~1ms, zero dependências |
+| IA Cloud | Gemini CLI | Grátis, offload pesado |
+| API | Express | Minimalista, funcional |
+
+**Total deps:** 5 produção + 4 dev = **9 packages**
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+/workspace/
+├── src/
+│   ├── core/
+│   │   └── database.ts        # Better-SQLite3 puro
+│   ├── api/routes/
+│   │   ├── ingest.ts          # POST /ingest
+│   │   ├── graph.ts           # GET /graph
+│   │   └── search.ts          # GET /search
+│   ├── services/
+│   │   ├── ai/
+│   │   │   ├── EntityExtractor.ts  # Regex + Gemini
+│   │   │   └── AutoLinker.ts       # Similaridade
+│   │   └── ingestion/
+│   │       └── FileSystemProvider.ts
+│   └── server-turbo.ts        # Entry point
+├── scripts/
+├── package.json
+└── README.md
+```
+
+---
+
+## 🧪 Testando
+
+```bash
+# 1. Crie algumas notas markdown
+mkdir -p ./notas-teste
+
+cat > ./notas-teste/nota1.md << 'MARKDOWN'
+# Introdução à IA
+
+Inteligência Artificial é o futuro. [[Machine Learning]] é parte disso.
+#tecnologia #ia
+MARKDOWN
+
+cat > ./notas-teste/nota2.md << 'MARKDOWN'
+# Machine Learning
+
+Machine Learning usa dados para treinar modelos.
+Relacionado com [[Introdução à IA]] e #data-science.
+MARKDOWN
+
+# 2. Injera as notas
+curl -X POST http://localhost:3000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "./notas-teste"}'
+
+# 3. Veja o grafo
+curl http://localhost:3000/api/graph
+
+# 4. Busque
+curl "http://localhost:3000/api/search?q=ia"
+```
+
+---
+
+## 📝 Próximos Passos
+
+- [ ] Frontend Preact + Sigma.js
+- [ ] WebSocket para updates em tempo real
+- [ ] Embeddings locais com Xenova (opcional)
+- [ ] Export/import de backup
+
+---
+
+## 📄 Licença
+
+MIT - Faça o que quiser! 🚀
+
+---
+
+**Feito com ❤️ para PCs carroças do mundo todo!**
