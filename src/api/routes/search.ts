@@ -1,274 +1,152 @@
 /**
  * API Routes - Search
- * 
- * GET /search?q=... - Busca full-text + semântica
- * GET /search/similar/:noteId - Notas similares
+ * Full-text and semantic search
  */
 
-import { Request, Response } from 'express'
-import { db } from '../../core/database'
-import { logger } from '../../utils/logger'
+import { Router } from 'express';
+import Database from 'better-sqlite3';
+
+const router = Router();
+let db: Database.Database;
+
+export function setDatabase(database: Database.Database) {
+  db = database;
+}
 
 /**
- * GET /search
- * Busca híbrida: full-text + filtro por tipo
+ * GET /api/search
+ * Search notes by query string
  */
-export async function searchNotes(req: Request, res: Response) {
-  const { q, type = 'all', limit = 20 } = req.query
-
-  if (!q || typeof q !== 'string') {
-    return res.status(400).json({ error: 'Query parameter "q" is required' })
-  }
-
+router.get('/', (req, res) => {
   try {
-    const database = db.getDb()
-    const searchTerm = `%${q.toLowerCase()}%`
+    const { q, limit = 20 } = req.query;
+    
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({ error: 'Query parameter "q" is required' });
+    }
 
-    let results: any[] = []
-
-    // Busca em títulos e conteúdo (full-text simples)
-    const notes = database.prepare(`
+    // Full-text search in title and content
+    const results = db.prepare(`
       SELECT 
         n.id,
         n.title,
-        n.slug,
-        n.excerpt,
-        n.created_at,
-        'note' as type,
-        1.0 as relevance
+        n.content,
+        n.word_count,
+        n.updated_at,
+        GROUP_CONCAT(t.name) as tags,
+        CASE 
+          WHEN n.title LIKE ? THEN 3
+          WHEN n.content LIKE ? THEN 2
+          ELSE 1
+        END as relevance
       FROM notes n
-      WHERE LOWER(n.title) LIKE ? OR LOWER(n.content) LIKE ?
-      ORDER BY n.created_at DESC
+      LEFT JOIN note_tags nt ON n.id = nt.note_id
+      LEFT JOIN tags t ON nt.tag_id = t.id
+      WHERE n.title LIKE ? OR n.content LIKE ? OR t.name LIKE ?
+      GROUP BY n.id
+      ORDER BY relevance DESC, n.updated_at DESC
       LIMIT ?
-    `).all(searchTerm, searchTerm, Number(limit))
+    `).all(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, parseInt(limit as string));
 
-    results.push(...notes)
-
-    // Busca em entidades
-    if (type === 'all' || type === 'entities') {
-      const entities = database.prepare(`
-        SELECT 
-          e.id,
-          e.name as title,
-          e.type as slug,
-          e.description as excerpt,
-          e.created_at,
-          'entity' as type,
-          0.8 as relevance
-        FROM entities e
-        WHERE LOWER(e.name) LIKE ?
-        ORDER BY e.mention_count DESC
-        LIMIT ?
-      `).all(searchTerm, Number(limit))
-
-      results.push(...entities)
-    }
-
-    // Busca em tags
-    if (type === 'all' || type === 'tags') {
-      const tags = database.prepare(`
-        SELECT 
-          t.id,
-          t.name as title,
-          'tag' as slug,
-          NULL as excerpt,
-          t.created_at,
-          'tag' as type,
-          0.6 as relevance
-        FROM tags t
-        WHERE LOWER(t.name) LIKE ?
-        ORDER BY t.usage_count DESC
-        LIMIT ?
-      `).all(searchTerm, Number(limit))
-
-      results.push(...tags)
-    }
-
-    // Ordena por relevância e tipo
-    results.sort((a, b) => {
-      if (b.relevance !== a.relevance) {
-        return b.relevance - a.relevance
-      }
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    })
-
-    // Limita resultados totais
-    results = results.slice(0, Number(limit))
-
-    logger.info(`🔍 Search "${q}": found ${results.length} results`)
+    // Highlight matches (simple implementation)
+    const highlightedResults = results.map((result: any) => ({
+      ...result,
+      excerpt: highlightMatches(result.content, q as string, 150)
+    }));
 
     res.json({
       success: true,
-      query: q,
-      results,
-      count: results.length
-    })
-
+      data: {
+        query: q,
+        count: highlightedResults.length,
+        results: highlightedResults
+      }
+    });
   } catch (error: any) {
-    logger.error('Search failed:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: error.message });
   }
-}
+});
 
 /**
- * GET /search/similar/:noteId
- * Encontra notas semanticamente similares
- * Usa AutoLinker para similaridade baseada em conteúdo
+ * GET /api/search/tags
+ * Search by tags
  */
-export async function findSimilarNotes(req: Request, res: Response) {
-  const { noteId } = req.params
-  const { limit = 10 } = req.query
-
+router.get('/tags', (req, res) => {
   try {
-    const database = db.getDb()
-
-    // Busca nota original
-    const note: any = database.prepare(`
-      SELECT id, title, content
-      FROM notes
-      WHERE id = ?
-    `).get(noteId)
-
-    if (!note) {
-      return res.status(404).json({ error: 'Note not found' })
+    const { tag } = req.query;
+    
+    if (!tag) {
+      return res.status(400).json({ error: 'Tag parameter is required' });
     }
 
-    // Busca todas as outras notas
-    const allNotes: any[] = database.prepare(`
-      SELECT id, title, content
-      FROM notes
-      WHERE id != ?
-    `).all(noteId)
-
-    // Calcula similaridade (mesma lógica do AutoLinker)
-    const keywords1 = extractKeywords(note.content)
-    const set1 = new Set(keywords1)
-
-    const similarities = allNotes.map(other => {
-      const keywords2 = extractKeywords(other.content)
-      const set2 = new Set(keywords2)
-
-      const intersection = new Set([...set1].filter(x => set2.has(x)))
-      const union = new Set([...set1, ...set2])
-
-      const similarity = union.size > 0 ? intersection.size / union.size : 0
-
-      return {
-        id: other.id,
-        title: other.title,
-        similarity,
-        commonKeywords: Array.from(intersection).slice(0, 10)
-      }
-    })
-
-    // Ordena e filtra
-    similarities
-      .filter(s => s.similarity > 0.1)
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, Number(limit))
-
-    logger.info(`🔍 Found ${similarities.length} similar notes for: ${note.title}`)
+    const notes = db.prepare(`
+      SELECT n.*
+      FROM notes n
+      JOIN note_tags nt ON n.id = nt.note_id
+      JOIN tags t ON nt.tag_id = t.id
+      WHERE t.name = ?
+      ORDER BY n.updated_at DESC
+    `).all(tag);
 
     res.json({
       success: true,
-      note: {
-        id: note.id,
-        title: note.title
-      },
-      similarNotes: similarities,
-      count: similarities.length
-    })
-
+      data: {
+        tag,
+        count: notes.length,
+        notes
+      }
+    });
   } catch (error: any) {
-    logger.error('Failed to find similar notes:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: error.message });
   }
-}
+});
 
 /**
- * GET /search/tags
- * Lista todas as tags com contagem
+ * GET /api/search/suggestions
+ * Get search suggestions (autocomplete)
  */
-export async function listTags(req: Request, res: Response) {
+router.get('/suggestions', (req, res) => {
   try {
-    const database = db.getDb()
+    const { q } = req.query;
+    
+    if (!q || typeof q !== 'string' || q.length < 2) {
+      return res.status(400).json({ error: 'Query must be at least 2 characters' });
+    }
 
-    const tags = database.prepare(`
-      SELECT name, usage_count
+    // Get title suggestions
+    const titleSuggestions = db.prepare(`
+      SELECT DISTINCT title as value, 'title' as type
+      FROM notes
+      WHERE title LIKE ?
+      LIMIT 5
+    `).all(`${q}%`);
+
+    // Get tag suggestions
+    const tagSuggestions = db.prepare(`
+      SELECT DISTINCT name as value, 'tag' as type
       FROM tags
-      ORDER BY usage_count DESC
-    `).all()
+      WHERE name LIKE ?
+      LIMIT 5
+    `).all(`${q}%`);
+
+    const suggestions = [...titleSuggestions, ...tagSuggestions];
 
     res.json({
       success: true,
-      tags,
-      count: tags.length
-    })
-
+      data: suggestions
+    });
   } catch (error: any) {
-    logger.error('Failed to list tags:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: error.message });
   }
-}
+});
 
 /**
- * GET /search/entities
- * Lista entidades por tipo
+ * Helper: Highlight matched text
  */
-export async function listEntities(req: Request, res: Response) {
-  const { type } = req.query
-
-  try {
-    const database = db.getDb()
-
-    let query = `
-      SELECT name, type, mention_count, description
-      FROM entities
-    `
-
-    const params: any[] = []
-
-    if (type) {
-      query += ' WHERE type = ?'
-      params.push(type)
-    }
-
-    query += ' ORDER BY mention_count DESC LIMIT 50'
-
-    const entities = database.prepare(query).all(...params)
-
-    res.json({
-      success: true,
-      entities,
-      count: entities.length
-    })
-
-  } catch (error: any) {
-    logger.error('Failed to list entities:', error)
-    res.status(500).json({ error: error.message })
-  }
+function highlightMatches(text: string, query: string, maxLength: number): string {
+  const excerpt = text.substring(0, maxLength);
+  const regex = new RegExp(`(${query})`, 'gi');
+  return excerpt.replace(regex, '<mark>$1</mark>') + '...';
 }
 
-/**
- * Extrai palavras-chave de um texto (mesma lógica do AutoLinker)
- */
-function extractKeywords(text: string): string[] {
-  const stopwords = new Set([
-    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-    'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
-    'o', 'a', 'os', 'as', 'um', 'uma', 'e', 'ou', 'mas', 'em', 'no', 'na',
-    'de', 'da', 'do', 'das', 'dos', 'para', 'por', 'com', 'ser', 'foi', 'são'
-  ])
-
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .filter(word => {
-      return word.length >= 3 && 
-             word.length <= 30 && 
-             !stopwords.has(word) &&
-             !/^\d+$/.test(word)
-    })
-    .slice(0, 100)
-}
+export default router;
