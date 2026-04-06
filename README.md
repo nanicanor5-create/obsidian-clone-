@@ -1,44 +1,63 @@
-# Obsidian Clone - AI-Powered Note Taking System
+# 🚀 Knowledge Nexus Clone - AI-Powered Note Taking System (MVP)
 
-Um clone do Obsidian com integração nativa de IA baseada em **Gemini CLI e Modelos Locais Leves**, permitindo que o sistema execute ações autônomas usando múltiplos modelos de IA para análise, geração de conteúdo e automação de fluxo de trabalho, **100% privado e offline-first**.
+Um sistema de gerenciamento de conhecimento **local-first** inspirado no [Knowledge Nexus](https://github.com/Jallermax/knowledge-nexus) e no Obsidian, com integração nativa de IA baseada em **Modelos Locais Leves (Xenova Transformers)** e **Gemini CLI**, permitindo que o sistema execute ações autônomas para análise, geração de conteúdo e automação de fluxo de trabalho, **100% privado e offline**.
 
-## 🚀 Visão Geral
+## 🎯 Conceitos do Knowledge Nexus Integrados
 
-Este projeto implementa um sistema de anotações similiar ao Obsidian, mas com:
+Este MVP faz engenharia reversa dos principais conceitos do Knowledge Nexus:
 
-- **Motor de IA Integrado**: Gemini CLI + Modelos Locais (Xenova Transformers)
-- **Prioridade Local-First**: Usa modelos locais leves por padrão (50-100ms por operação)
-- **Offline por Design**: Funciona completamente sem internet
-- **Privacidade Total**: Dados nunca saem do seu computador
-- **Autossuficiência de IA**: O sistema pode executar ações por conta própria (análise de notas, sugestões de ligações, geração de estruturas)
-- **Múltiplos Backends de IA**: Fallback para Gemini, Claude, OpenAI quando necessário
-- **Grafo de Conhecimento**: Sistema de linking bidirecional entre notas
-- **Sincronização em Tempo Real**: Atualização instantânea de relacionamentos entre notas
+| Knowledge Nexus (Python) | Nosso MVP (TypeScript/Node) | Status |
+|--------------------------|----------------------------|--------|
+| Neo4j Graph DB | **SQLite + TypeORM Relations** | ✅ |
+| OpenAI API | **Xenova Transformers (Local)** | ✅ |
+| Streamlit UI | **REST API + Futuro React** | 🚧 |
+| LangChain | **Orquestrador Próprio** | ✅ |
+| Notion Provider | **FileSystem + Notion (Futuro)** | ✅/🚧 |
+| FS Cache | **EmbeddingCache Entity** | ✅ |
+| spaCy NER | **Xenova NER (Futuro)** | 🚧 |
+| Python | **Node.js/TypeScript** | ✅ |
 
-## ✨ Características Principais
+## ✨ Diferenciais vs Knowledge Nexus Original
 
-### Core
-- 📝 Edição de markdown com preview em tempo real
-- 🔗 Grafo de conhecimento com backlinks
-- 🏷️ Tags e categorização automática via IA
-- 🔍 Busca inteligente alimentada por IA
-- 📊 Wall of insights (painel de sugestões da IA)
+| Feature | Knowledge Nexus | Nosso MVP |
+|---------|----------------|-----------|
+| Runtime | Python | **Node.js/TS** |
+| IA | OpenAI only | **Local-first + Cloud fallback** |
+| Graph DB | Neo4j required | **SQLite OR Neo4j** |
+| Offline | ❌ Requires API | **✅ 100% offline capable** |
+| Privacy | Sends to OpenAI | **Zero data out (local mode)** |
+| Speed | ~1-2s/op | **~50-100ms/op (local)** |
+| UI | Streamlit | **REST API + React (futuro)** |
+| Real-time | ❌ | **✅ Socket.io ready** |
+| Setup | Complex | **npm install + run** |
 
-### IA & Automação (LOCAL-FIRST)
-- 🤖 **Auto-Analyzer**: Extrai conceitos e entidades usando Xenova embeddings
-- 💡 **Auto-Linker**: Descobre automaticamente conexões entre notas (100% offline)
-- 📈 **Smart Summarizer**: Cria sumários automáticos
-- 🎯 **Auto-Tagger**: Classificação automática de notas
-- 🔄 **Background Tasks**: Processamento assíncrono de notas
-- 🌐 **Confidence Fallback**: Usa APIs cloud só quando necessário
+## 📦 MVP Scope - Funcionalidades Implementadas
 
-### Recursos Avançados
-- 🌐 Suporte a múltiplas linguagens (via multilingual-e5)
-- 📱 Interface responsiva (funciona em qualquer tela)
-- 🎨 Tema claro/escuro com customização
-- 💾 Export (PDF, HTML, Markdown) offline
-- 🔐 Encriptação local (opcional)
-- ⚡ Execução 90% mais rápida que APIs cloud
+### ✅ Fase 1: Core Infrastructure
+
+#### Modelos de Dados
+- **Note**: Notas com suporte a múltiplas fontes (FS, Notion, Web)
+- **ConceptEntity**: Entidades/conceitos extraídos (Topic, Person, Organization, etc.)
+- **Relation**: Relações entre entidades (MENTIONS, RELATED_TO, SIMILAR_TO, etc.)
+- **Tag**: Tags estilo Obsidian
+- **EmbeddingCache**: Cache de vetores para busca semântica offline
+
+#### Serviços
+- **FileSystemProvider**: Ingestão de markdown com parse de frontmatter, tags e links
+- **EmbeddingService**: Geração de embeddings locais com Xenova (384 dims, quantizado)
+- **GraphEngine**: Construção e consulta do grafo de conhecimento
+
+### 🚧 Fase 2: Em Desenvolvimento
+- Entity Extraction (NER automático)
+- Auto-Linker (sugestão de links entre notas)
+- API Routes completas
+- Frontend React
+
+### 🔮 Fase 3: Futuro
+- Notion Provider
+- Web Scraper
+- RAG Mechanism
+- Chat Interface Q&A
 
 ## 🏗️ Arquitetura
 
@@ -57,25 +76,28 @@ Este projeto implementa um sistema de anotações similiar ao Obsidian, mas com:
 │  ┌──────────────┐  ┌──────────────┐                 │
 │  │ Note System  │  │ Graph Engine │                 │
 │  └──────────────┘  └──────────────┘                 │
-└──────────────────┬──────────────────────────────────┘
-                   │
-┌──────────────────┴──────────────────────────────────┐
-│          AI Engine (Gemini CLI)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │ Analyzer │  │ Generator│  │Orchestrator          │
-│  └──────────┘  └──────────┘  └──────────┘           │
+│  ┌──────────────┐  ┌──────────────┐                 │
+│  │ Ingestion    │  │ AI Engine    │                 │
+│  │ (FileSystem) │  │ (Xenova)     │                 │
+│  └──────────────┘  └──────────────┘                 │
 └──────────────────┬──────────────────────────────────┘
                    │
 ┌──────────────────┴──────────────────────────────────┐
 │       Storage Layer                                  │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │  Database│  │  File    │  │  Vector  │           │
-│  │  (SQL)   │  │  Store   │  │  DB      │           │
+│  │  SQLite  │  │  File    │  │ Embedding│           │
+│  │(TypeORM) │  │  Store   │  │  Cache   │           │
 │  └──────────┘  └──────────┘  └──────────┘           │
 └─────────────────────────────────────────────────────┘
 ```
 
 ## 🚀 Quick Start
+
+### Pré-requisitos
+- Node.js >= 18.0.0
+- npm >= 8.0.0
+
+### Instalação
 
 ```bash
 # Clone o repositório
@@ -85,9 +107,8 @@ cd obsidian-clone-
 # Instale as dependências
 npm install
 
-# Configure as chaves de API
+# Configure variáveis de ambiente (opcional para modo local)
 cp .env.example .env
-# Edite .env com suas chaves Gemini, Claude, etc.
 
 # Inicie o servidor de desenvolvimento
 npm run dev
@@ -95,61 +116,74 @@ npm run dev
 # Acesse em http://localhost:3000
 ```
 
+### Primeiro Uso - Ingestão de Notas
+
+```typescript
+import { FileSystemProvider } from './src/services/ingestion/FileSystemProvider'
+import { embeddingService } from './src/services/ai/EmbeddingService'
+import { graphEngine } from './src/services/graph/GraphEngine'
+
+// 1. Escaneia diretório
+const provider = new FileSystemProvider()
+const files = await provider.scanDirectory('./my-notes')
+
+// 2. Processa cada arquivo
+for (const file of files) {
+  const parsed = await provider.parseMarkdown(file.filePath)
+  console.log(`Parsed: ${parsed.title}`)
+}
+
+// 3. Gera embeddings (primeira vez baixa o modelo ~80MB)
+const embedding = await embeddingService.generateEmbedding(
+  "Conteúdo da nota",
+  EmbeddingType.NOTE_CONTENT,
+  'note-id'
+)
+
+// 4. Visualiza grafo
+const graph = await graphEngine.buildGraph()
+console.log(`Graph: ${graph.nodes.length} nodes, ${graph.edges.length} edges`)
+```
+
 ## 📚 Documentação
 
-- [**QUICK_LOCAL_SETUP.md**](./docs/QUICK_LOCAL_SETUP.md) - ⚡ Setup em 5 minutos (COMECE AQUI!)
-- [**LOCAL_MODELS.md**](./docs/LOCAL_MODELS.md) - 🤖 Modelos leves & arquitetura local-first
-- [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md) - 🏗️ Arquitetura detalhada
-- [**AI_ENGINE.md**](./docs/AI_ENGINE.md) - ⚙️ Motor de IA e orquestração
-- [**GETTING_STARTED.md**](./docs/GETTING_STARTED.md) - 🚀 Guia completo de setup
-- [**API.md**](./docs/API.md) - 📖 Referência da API
-- [**DEVELOPMENT.md**](./docs/DEVELOPMENT.md) - 👨‍💻 Guia de contribuição
+| Documento | Propósito |
+|-----------|-----------|
+| [**MVP_PLAN.md**](./MVP_PLAN.md) | 📋 Plano completo do MVP |
+| [**MVP_IMPLEMENTATION.md**](./docs/MVP_IMPLEMENTATION.md) | 🔧 Guia de implementação |
+| [**QUICK_LOCAL_SETUP.md**](./docs/QUICK_LOCAL_SETUP.md) | ⚡ Setup em 5 minutos |
+| [**LOCAL_MODELS.md**](./docs/LOCAL_MODELS.md) | 🤖 Modelos leves & arquitetura local-first |
+| [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md) | 🏗️ Arquitetura detalhada |
+| [**AI_ENGINE.md**](./docs/AI_ENGINE.md) | ⚙️ Motor de IA e orquestração |
+| [**API.md**](./docs/API.md) | 📖 Referência da API |
 
-## 🤖 Como Funciona o Motor de IA
+## 🛠️ Stack Tecnológico
 
-O sistema usa **Gemini CLI** como orquestrador central:
+- **Runtime**: Node.js 18+
+- **Language**: TypeScript 5
+- **Database**: SQLite (via TypeORM)
+- **AI/Xenova**: @xenova/transformers (all-MiniLM-L6-v2)
+- **Vector**: Embedding cache no SQLite
+- **Server**: Express + Socket.io
+- **Models**: TypeORM entities
 
-1. **Observação**: Sistema monitora novas/alteradas notas
-2. **Análise**: Gemini CLI analisa o conteúdo automaticamente
-3. **Decision Making**: IA decide que ações tomar
-4. **Execução**: Sistema executa ações (criar links, tags, sumários)
-5. **Feedback**: Resultados são validados e refinados
+## 📊 Métricas de Performance
 
-Similar ao Paperclip AI, que usava GPT para suas próprias ações, nosso sistema é **auto-dirigizado pela IA**.
+| Operação | Tempo Alvo | Modo |
+|----------|------------|------|
+| Scan 100 files | < 5s | Local |
+| Parse markdown | < 10ms | Local |
+| Generate embedding | 50-100ms | Local (cached: <10ms) |
+| Build graph (1000 nodes) | < 2s | Local |
+| Semantic search | < 200ms | Local |
 
-## 📦 Stack Tecnológico
+## 🔒 Privacidade e Offline
 
-- **Backend**: Node.js + Express
-- **Frontend**: React 18 + TailwindCSS
-- **Database**: PostgreSQL
-- **Vector DB**: Pinecone/Weaviate
-- **IA Engines**: Gemini CLI, Claude API, OpenAI API
-- **Real-time**: Socket.io
-- **Task Queue**: Bull/RabbitMQ
-
-## 🔧 Configuração
-
-Copie `.env.example` para `.env` e configure:
-
-```env
-# Gemini
-GEMINI_API_KEY=your_key
-GEMINI_MODEL=gemini-pro
-
-# Claude (Fallback)
-CLAUDE_API_KEY=your_key
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost/obsidian
-
-# Vector Database
-PINECONE_API_KEY=your_key
-PINECONE_ENVIRONMENT=us-west1
-
-# Server
-PORT=3000
-NODE_ENV=development
-```
+- ✅ Zero dados enviados para cloud (modo local)
+- ✅ Embeddings gerados localmente
+- ✅ Banco de dados SQLite local
+- ✅ Funciona sem internet após setup inicial
+- ✅ Download único do modelo (~80MB quantizado)
 
 ## 🤝 Contribuindo
 
@@ -161,10 +195,13 @@ MIT
 
 ## 🙏 Agradecimentos
 
-Inspirado pelo Obsidian.md e pela abordagem autônoma de IA do Paperclip AI.
+Inspirado por:
+- [Knowledge Nexus](https://github.com/Jallermax/knowledge-nexus) - GraphRAG para Second Brain
+- [Obsidian.md](https://obsidian.md) - Note taking baseado em markdown
+- [Xenova Transformers](https://github.com/xenova/transformers.js) - ML no navegador/Node
 
 ---
 
-**Status**: 🚧 Em Desenvolvimento
-**Versão**: 0.1.0-alpha
+**Status**: 🚧 MVP em Desenvolvimento (Fase 1 Completa)  
+**Versão**: 0.2.0-mvp  
 **Última Atualização**: 2025-04-05
